@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import javax.websocket.server.PathParam;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -104,6 +105,21 @@ public class MusicAppRestResource {
 		return null;
 	}
 
+	@DELETE
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Path("deleteFile")
+	public Response deleteFile(@QueryParam("fileId") String fileId) {
+		try {
+			 musicServiceImpl.deleteMusicFile(fileId);
+			return Response.ok("").build();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	
 	@GET
 	@Path("download")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)

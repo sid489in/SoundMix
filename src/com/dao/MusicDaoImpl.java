@@ -56,6 +56,15 @@ public class MusicDaoImpl {
 		}
 		return null;
 	}
+	
+	public Integer deleteMixedFile(int fileId) {
+		try {
+			getHibernateTemplate().bulkUpdate("delete from "+MixedFiles.class.getName()+" where fileId="+fileId);
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	public void saveChannelDetails(Channel ch) {
 		try {

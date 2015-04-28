@@ -24,6 +24,7 @@ import javax.sound.sampled.AudioFileFormat.Type;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import com.dao.MusicDaoImpl;
 import com.entity.Channel;
@@ -98,6 +99,12 @@ public class MusicServiceImpl {
 			files.add(toJsonElement(obj));
 		}
 		return files;
+	}
+	
+	public void deleteMusicFile(String fileId)
+	{
+		if(!StringUtils.isEmpty(fileId))
+		dao.deleteMixedFile(Integer.valueOf(fileId));
 	}
 
 	public static String humanReadableByteCount(long bytes, boolean si) {

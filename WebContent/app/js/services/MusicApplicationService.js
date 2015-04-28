@@ -43,6 +43,24 @@ define(
 										return deferred.promise();
 									},
 									
+									deleteFile : function(file) {
+										var deferred = jQuery.Deferred();
+										jQuery
+												.ajax({
+													url : "http://localhost:8080/SoundMix/services/deleteFile?fileId="+file.fileId,
+													type : "DELETE",
+													contentType : "application/json",
+													success : function(result) {
+														return deferred
+																.resolve(result);
+													},
+													fail : function(result) {
+
+													}
+												});
+										return deferred.promise();
+									},
+									
 									getAllFiles : function() {
 										var deferred = jQuery.Deferred();
 										jQuery

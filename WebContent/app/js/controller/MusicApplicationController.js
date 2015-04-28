@@ -54,18 +54,23 @@ define(
 								})
 						window.location.href = url;
 					} else if (sectionId == 'section2') {
+						$(".modal").fadeIn();
 						this.musicApplicationService.getAllFiles().done(
 								function(data) {
 									self.files = data;
 									self.scope.$apply();
+									$(".modal").fadeOut();
 								});
+					// window.location.href = url;
+						// $('filesTbl').dataTable();
+					} else if (sectionId == 'collection') {
+						$(".modal").fadeIn();
 						this.musicApplicationService.getAllMixedFiles().done(
 								function(data) {
 									self.mixedFiles = data;
 									self.scope.$apply();
+									$(".modal").fadeOut();
 								});
-					// window.location.href = url;
-						// $('filesTbl').dataTable();
 					}
 				},
 
@@ -129,7 +134,30 @@ define(
 				},
 				downloadFile : function(file) {
 					var self = this;
-					this.musicApplicationService.downloadFile(this.mixedFile);
+					if(file){
+						this.musicApplicationService.downloadFile(file);
+					} else {
+						this.musicApplicationService.downloadFile(this.mixedFile);	
+					}
+					
+				},
+				
+				deleteFile : function(file) {
+					var self = this;
+					if(file){
+						$(".modal").fadeIn();
+						this.musicApplicationService.deleteFile(file).done(function() {
+							$.each(self.mixedFiles, function(i){
+							    if(self.mixedFiles[i].fileId === file.fileId) {
+							    	self.mixedFiles.splice(i,1);
+							        return false;
+							    }
+							});
+							self.scope.$apply();
+							$(".modal").fadeOut();
+						});
+					} 
+					
 				},
 
 				uploadFile : function() {

@@ -61,7 +61,7 @@
 					<li><a class="page-scroll" href="#section1">Music</a></li>
 					<li><a class="page-scroll" href="#section2"
 						ng-click="musicCtrl.navigateToSection('section2')">Mix Music</a></li>
-					<li><a class="page-scroll" href="#about">About</a></li>
+					<li><a class="page-scroll" href="#collection" ng-click="musicCtrl.navigateToSection('collection')">View Collection</a></li>
 					<li><a class="page-scroll" href="#team">Team</a></li>
 					<li><a class="page-scroll" href="#contact">Contact</a></li>
 				</ul>
@@ -218,40 +218,31 @@
 	</section>
 
 	<!-- About Section -->
-	<section id="about">
+	<section id="collection">
 		<div class="container">
 			<div class="row">
 				<table id="example" class="display" cellspacing="1" cellpadding="1"width="100%">
 					<thead>
 						<tr>
-							<th>Name</th>
-							<th>Position</th>
-							<th>Office</th>
-							<th>Age</th>
-							<th>Start date</th>
-							<th>Salary</th>
+							<th>File Name</th>
+							<th>Source File</th>
+							<th>Target File</th>
+							<th>Size</th>
+							<th>Action</th>
 						</tr>
 					</thead>
 
 					<tfoot>
-						<tr>
-							<th>Name</th>
-							<th>Position</th>
-							<th>Office</th>
-							<th>Age</th>
-							<th>Start date</th>
-							<th>Salary</th>
-						</tr>
 					</tfoot>
 
 					<tbody>
-						<tr>
-							<td data-search="Tiger Nixon">T. Nixon</td>
-							<td>System Architect</td>
-							<td>Edinburgh</td>
-							<td>61</td>
-							<td data-order="1303686000">Mon 25th Apr 11</td>
-							<td data-order="320800">$320,800/y</td>
+						<tr ng-repeat="file in musicCtrl.mixedFiles">
+							<td>{{file.fileName}}</td>
+							<td>{{file.sourceFile.fileName}}</td>
+							<td>{{file.targetFile.fileName}}</td>
+							<td>{{file.fileSize}}</td>
+							<td><button class="btn btn-primary" ng-click="musicCtrl.downloadFile(file)">Download</button>
+							<button class="btn btn-primary" ng-click="musicCtrl.deleteFile(file)">Delete</button></td>
 						</tr>
 					</tbody>
 				</table>
