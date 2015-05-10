@@ -1,11 +1,12 @@
 define(
-		[ 'angular', 'app',  'services/MusicApplicationService' ],
-		function(angular, app,  musicApplicationService) {
+		[ 'angular', 'datatables', 'dataTablesBootstrap', 'app',
+				'services/MusicApplicationService' ],
+		function(angular, app, musicApplicationService) {
 
 			var musicApp = angular.module('soundMix');
 
 			var MusicApplicationController = function($scope,
-					musicApplicationService,$location) {
+					musicApplicationService, $location) {
 				this.scope = $scope;
 				this.location = $location;
 				this.musicApplicationService = musicApplicationService;
@@ -32,9 +33,37 @@ define(
 				}
 
 				this.context = new AudioContext();
+				this.fileHeader = [ {
+					"mDataProp" : "fileName",
+					"aTargets" : [ 0 ]
+				}, {
+					"mDataProp" : "fileSize",
+					"aTargets" : [ 1 ]
+				} /*
+					 * , { "mDataProp": "size", "aTargets":[1] }, { "mDataProp":
+					 * "duration", "aTargets":[2] }, { "mDataProp": "type",
+					 * "aTargets":[3] },
+					 */
+				];
+
 			};
 
 			MusicApplicationController.prototype = {
+				selectMusicFile : function(nRow, aData, iDisplayIndex,
+						iDisplayIndexFull) {
+					var self = this;
+					$('td:eq(4)', nRow).bind('click', function() {
+		                $scope.$apply(function() {
+		                    this.someClickHandler(aData);
+		                });
+		            });
+		            return nRow;
+				},
+				
+				someClickHandler : function(info) {
+		            $scope.message = 'clicked: '+ info.id;
+		            alert(info)
+		        },
 
 				navigateToSection : function(sectionId, channel) {
 					this.fileIds = [];
@@ -54,16 +83,61 @@ define(
 								})
 						window.location.href = url;
 					} else if (sectionId == 'section2') {
+						var options = {
+								"bStateSave" : true,
+								"iCookieDuration" : 2419200, /* 1 month */
+								"bJQueryUI" : true,
+								"bPaginate" : true,
+								"bLengthChange" : false,
+								"bFilter" : true,
+								"bInfo" : true,
+								"bDestroy" : true
+							};
+						var table = $('#example').DataTable({
+						        "columnDefs": [
+						            {
+						                "targets": [ 0 ],
+						                "visible": false,
+						                "searchable": false
+						            }]
+						});
 						$(".modal").fadeIn();
 						this.musicApplicationService.getAllFiles().done(
 								function(data) {
 									self.files = data;
+									   $.each(data, function(index, data) {     
+			                                  //!!!--Here is the main catch------>fnAddData
+			                                  $('#example').dataTable().fnAddData( [  data.fileId,	
+			                                                                          data.fileName,
+			                                                                          "mp3/wav",
+			                                                                          "",
+			                                                                          data.fileSize ]
+			                                                                        );      
+
+			                                });
 									self.scope.$apply();
 									$(".modal").fadeOut();
 								});
-					// window.location.href = url;
-						// $('filesTbl').dataTable();
+						// window.location.href = url;
+						var self = this;
+					    $('#example tbody').on( 'click', 'tr', function () {
+					    	var data = table.row( this ).data();
+					    	
+					    	var idx = jQuery.inArray(data[0], self.fileIds);
+					        if ( $(this).hasClass('highlight') ) {
+					        	self.fileIds.splice(idx,1);
+					            $(this).removeClass('highlight');
+					        }
+					        else {
+					          //  table.$('tr.highlight').removeClass('selected');
+					        	self.fileIds.push(data[0]);
+					            $(this).addClass('highlight');
+					        }
+					        self.scope.$apply();
+					    } );
+					 
 					} else if (sectionId == 'collection') {
+						var table = $('#example1').DataTable();
 						$(".modal").fadeIn();
 						this.musicApplicationService.getAllMixedFiles().done(
 								function(data) {
@@ -75,20 +149,20 @@ define(
 				},
 
 				addSelected : function(file) {
-					file.added =true;
+					file.added = true;
 					this.fileIds.push(file.fileId);
 					self.scope.$apply();
 				},
-				
+
 				setLoading : function(loading) {
 					this.isLoading = true;
 				},
-				
+
 				removeSelected : function(file) {
-					file.added =false;
-					for(var i=0; i < fileIds.length;i++){
-						if(file.fileId == filesIds[i]){
-							fileIds.splice(i,1);
+					file.added = false;
+					for (var i = 0; i < fileIds.length; i++) {
+						if (file.fileId == filesIds[i]) {
+							fileIds.splice(i, 1);
 						}
 					}
 					self.scope.$apply();
@@ -96,7 +170,7 @@ define(
 
 				mixFiles : function() {
 					var self = this;
-					this.mixedFile =null;
+					this.mixedFile = null;
 					$(".modal").fadeIn();
 					this.musicApplicationService.mixSongs(this.fileIds).done(
 							function(result) {
@@ -105,59 +179,69 @@ define(
 								self.mixedFile = file;
 								$(".modal").fadeOut();
 								self.scope.$apply();
-								
+
 							});
 				},
-				
+
 				updateDataTable : function() {
-					 this.scope.options = {  
-							 aoColumns: [{
-				            "sTitle": "File Name"
-				        }, {
-				            "sTitle": "Source File"
-				        },{
-				            "sTitle": "Target File"
-				        },{
-				            "sTitle": "Duration File"
-				        },{
-				            "sTitle": "Action"
-				        }],
-				        
-				        aoColumnDefs: [{
-				            "bSortable": false,
-				            "aTargets": [0, 1,2,3]
-				        }],
-				        bJQueryUI: true,
-				        bDestroy: true,
-				        aaData: this.mixedFiles
-				    };
+					this.scope.options = {
+						aoColumns : [ {
+							"sTitle" : "File Name"
+						}, {
+							"sTitle" : "Source File"
+						}, {
+							"sTitle" : "Target File"
+						}, {
+							"sTitle" : "Duration File"
+						}, {
+							"sTitle" : "Action"
+						} ],
+
+						aoColumnDefs : [ {
+							"bSortable" : false,
+							"aTargets" : [ 0, 1, 2, 3 ]
+						} ],
+						bJQueryUI : true,
+						bDestroy : true,
+						aaData : this.mixedFiles
+					};
 				},
 				downloadFile : function(file) {
 					var self = this;
-					if(file){
+					if (file) {
 						this.musicApplicationService.downloadFile(file);
 					} else {
-						this.musicApplicationService.downloadFile(this.mixedFile);	
+						this.musicApplicationService
+								.downloadFile(this.mixedFile);
 					}
-					
+
 				},
-				
+
 				deleteFile : function(file) {
 					var self = this;
-					if(file){
+					if (file) {
 						$(".modal").fadeIn();
-						this.musicApplicationService.deleteFile(file).done(function() {
-							$.each(self.mixedFiles, function(i){
-							    if(self.mixedFiles[i].fileId === file.fileId) {
-							    	self.mixedFiles.splice(i,1);
-							        return false;
-							    }
-							});
-							self.scope.$apply();
-							$(".modal").fadeOut();
-						});
-					} 
-					
+						this.musicApplicationService
+								.deleteFile(file)
+								.done(
+										function() {
+											$
+													.each(
+															self.mixedFiles,
+															function(i) {
+																if (self.mixedFiles[i].fileId === file.fileId) {
+																	self.mixedFiles
+																			.splice(
+																					i,
+																					1);
+																	return false;
+																}
+															});
+											self.scope.$apply();
+											$(".modal").fadeOut();
+										});
+					}
+
 				},
 
 				uploadFile : function() {
@@ -217,13 +301,13 @@ define(
 				},
 
 				toggle : function(file) {
-					if(!this.playing){
+					if (!this.playing) {
 						this.playByteArray(file);
 					} else {
 						this.stop();
 					}
 					this.playing = !this.playing;
-					
+
 				},
 				// from mozilla
 				b64ToUint6 : function(nChr) {

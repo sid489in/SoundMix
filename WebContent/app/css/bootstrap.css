@@ -6563,4 +6563,8 @@ button.close {
     display: none !important;
   }
 }
+
+.table-striped tbody tr.highlight td {
+    background-color: red;
+}
 /*# sourceMappingURL=bootstrap.css.map */

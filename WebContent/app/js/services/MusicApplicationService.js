@@ -5,13 +5,15 @@ define(
 					.factory(
 							'musicApplicationService',
 							function() {
+								var baseUrl = location.href;
 								return {
-
+									
 									getAllChannels : function() {
 										var deferred = jQuery.Deferred();
+										var self = this;
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/allChannels",
+													url : baseUrl + "services/allChannels",
 													type : "GET",
 													contentType : "application/json",
 													success : function(result) {
@@ -29,7 +31,7 @@ define(
 										var deferred = jQuery.Deferred();
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/allMixedFiles",
+													url : baseUrl + "services/allMixedFiles",
 													type : "GET",
 													contentType : "application/json",
 													success : function(result) {
@@ -47,7 +49,7 @@ define(
 										var deferred = jQuery.Deferred();
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/deleteFile?fileId="+file.fileId,
+													url : baseUrl + "services/deleteFile?fileId="+file.fileId,
 													type : "DELETE",
 													contentType : "application/json",
 													success : function(result) {
@@ -65,7 +67,7 @@ define(
 										var deferred = jQuery.Deferred();
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/allFiles",
+													url : baseUrl + "services/allFiles",
 													type : "GET",
 													contentType : "application/json",
 													success : function(result) {
@@ -83,7 +85,7 @@ define(
 										var deferred = jQuery.Deferred();
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/file",
+													url : baseUrl + "services/file",
 													type : "GET",
 													contentType : "application/json",
 													data : JSON
@@ -100,7 +102,7 @@ define(
 									},
 
 									downloadFile : function(file) {
-										window.location.href = "http://localhost:8080/SoundMix/services/download?fileId="
+										window.location.href = baseUrl + "services/download?fileId="
 												+ file.fileId;
 									},
 
@@ -112,7 +114,7 @@ define(
 										}
 										jQuery
 												.ajax({
-													url : "http://localhost:8080/SoundMix/services/mixSongs",
+													url : baseUrl + "services/mixSongs",
 													type : "POST",
 													contentType : "application/json",
 													data : JSON
@@ -142,7 +144,7 @@ define(
 										var deferred = jQuery.Deferred();
 										$
 												.ajax({
-													url : 'http://localhost:8080/SoundMix/services/uploadMusic', // Server
+													url : baseUrl + 'services/uploadMusic', // Server
 													// script
 													// to
 													// process
