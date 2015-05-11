@@ -1,5 +1,8 @@
 package com.entity;
 
+import java.util.List;
+import java.util.Set;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,6 +13,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
@@ -18,16 +22,21 @@ import javax.persistence.Table;
 public class MixedFiles {
 
 	@Id
+	@Column(name="MIXED_FILE_ID")
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int fileId;
 
-	@ManyToOne
-	@JoinColumn(name = "SOURCE_FILE_ID")
-	private FileInfo sourceFile;
-
-	@ManyToOne
-	@JoinColumn(name = "TARGET_FILE_ID")
-	private FileInfo targetFile;
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+    private FileInfo channel1;
+	
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+    private FileInfo channel2;
+	
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+    private FileInfo channel3;
+	
+	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
+    private FileInfo channel4;
 
 	@Column(name = "FILE_NAME")
 	private String fileName;
@@ -42,8 +51,8 @@ public class MixedFiles {
 	@Column(name = "FILE_CONTENTS", columnDefinition = "blob")
 	private byte[] fileContents;
 
-	@OneToOne(cascade=CascadeType.ALL,fetch=FetchType.EAGER)
-	@JoinColumn(name = "ID")
+	@OneToOne(cascade=CascadeType.PERSIST,fetch=FetchType.EAGER)
+	@JoinColumn(name = "METADATA_ID")
 	private FileMetaData metaData;
 	
 	@Column(name ="FILE_PATH")
@@ -57,20 +66,36 @@ public class MixedFiles {
 		this.fileId = fileId;
 	}
 
-	public FileInfo getSourceFile() {
-		return sourceFile;
+	public FileInfo getChannel1() {
+		return channel1;
 	}
 
-	public void setSourceFile(FileInfo sourceFile) {
-		this.sourceFile = sourceFile;
+	public void setChannel1(FileInfo channel1) {
+		this.channel1 = channel1;
 	}
 
-	public FileInfo getTargetFile() {
-		return targetFile;
+	public FileInfo getChannel2() {
+		return channel2;
 	}
 
-	public void setTargetFile(FileInfo targetFile) {
-		this.targetFile = targetFile;
+	public void setChannel2(FileInfo channel2) {
+		this.channel2 = channel2;
+	}
+
+	public FileInfo getChannel3() {
+		return channel3;
+	}
+
+	public void setChannel3(FileInfo channel3) {
+		this.channel3 = channel3;
+	}
+
+	public FileInfo getChannel4() {
+		return channel4;
+	}
+
+	public void setChannel4(FileInfo channel4) {
+		this.channel4 = channel4;
 	}
 
 	public String getFileName() {

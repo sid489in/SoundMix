@@ -22,7 +22,9 @@ define(
 						function(data) {
 							self.channels = data;
 							self.scope.$apply();
-						})
+						}).fail(function(e) {
+							
+						});
 
 				if (!window.AudioContext) {
 					if (!window.webkitAudioContext) {
@@ -33,18 +35,60 @@ define(
 				}
 
 				this.context = new AudioContext();
-				this.fileHeader = [ {
-					"mDataProp" : "fileName",
-					"aTargets" : [ 0 ]
-				}, {
-					"mDataProp" : "fileSize",
-					"aTargets" : [ 1 ]
-				} /*
-					 * , { "mDataProp": "size", "aTargets":[1] }, { "mDataProp":
-					 * "duration", "aTargets":[2] }, { "mDataProp": "type",
-					 * "aTargets":[3] },
-					 */
-				];
+				var options = {
+						"bStateSave" : true,
+						"iCookieDuration" : 2419200, /* 1 month */
+						"bJQueryUI" : true,
+						"bPaginate" : true,
+						"bLengthChange" : false,
+						"bFilter" : true,
+						"bInfo" : true,
+						"bDestroy" : true
+					};
+				this.musicInfoTable = $('#example').DataTable({
+				        "columnDefs": [
+				            {
+				                "targets": [ 0 ],
+				                "visible": false,
+				                "searchable": false
+				            }]
+				});
+				
+				var self = this;
+				$('#example tbody').on( 'click', 'tr', function () {
+			    	var data = self.musicInfoTable.row( this ).data();
+			    	
+			    	var idx = jQuery.inArray(data[0], self.fileIds);
+			        if ( $(this).hasClass('highlight') ) {
+			        	self.fileIds.splice(idx,1);
+			            $(this).removeClass('highlight');
+			        }
+			        else {
+			          //  table.$('tr.highlight').removeClass('selected');
+			        	self.fileIds.push(data[0]);
+			            $(this).addClass('highlight');
+			        }
+			        self.scope.$apply();
+			    } );
+			
+				this.mixedFileTable = $('#example1').DataTable({
+					"columnDefs": [
+						            {
+						                "targets": [ 0 ],
+						                "visible": false,
+						                "searchable": false
+						            },
+						            {
+						                "targets": -1,
+						                "data": null,
+						                "defaultContent": "<center><button>Download</button><center>"
+						            }]
+				});
+				
+				$('#example1 tbody').on( 'click', 'button', function () {
+			        var data = self.mixedFileTable.row( $(this).parents('tr') ).data();
+			        self.downloadFile(data[4]);
+			    } );
 
 			};
 
@@ -83,28 +127,11 @@ define(
 								})
 						window.location.href = url;
 					} else if (sectionId == 'section2') {
-						var options = {
-								"bStateSave" : true,
-								"iCookieDuration" : 2419200, /* 1 month */
-								"bJQueryUI" : true,
-								"bPaginate" : true,
-								"bLengthChange" : false,
-								"bFilter" : true,
-								"bInfo" : true,
-								"bDestroy" : true
-							};
-						var table = $('#example').DataTable({
-						        "columnDefs": [
-						            {
-						                "targets": [ 0 ],
-						                "visible": false,
-						                "searchable": false
-						            }]
-						});
 						$(".modal").fadeIn();
 						this.musicApplicationService.getAllFiles().done(
 								function(data) {
 									self.files = data;
+									$('#example').dataTable().fnClearTable();
 									   $.each(data, function(index, data) {     
 			                                  //!!!--Here is the main catch------>fnAddData
 			                                  $('#example').dataTable().fnAddData( [  data.fileId,	
@@ -117,34 +144,33 @@ define(
 			                                });
 									self.scope.$apply();
 									$(".modal").fadeOut();
+								}).fail(function(e) {
+									$(".modal").fadeOut();
 								});
 						// window.location.href = url;
 						var self = this;
-					    $('#example tbody').on( 'click', 'tr', function () {
-					    	var data = table.row( this ).data();
-					    	
-					    	var idx = jQuery.inArray(data[0], self.fileIds);
-					        if ( $(this).hasClass('highlight') ) {
-					        	self.fileIds.splice(idx,1);
-					            $(this).removeClass('highlight');
-					        }
-					        else {
-					          //  table.$('tr.highlight').removeClass('selected');
-					        	self.fileIds.push(data[0]);
-					            $(this).addClass('highlight');
-					        }
-					        self.scope.$apply();
-					    } );
-					 
+					     
 					} else if (sectionId == 'collection') {
-						var table = $('#example1').DataTable();
 						$(".modal").fadeIn();
+						$('#example1').dataTable().fnClearTable();
 						this.musicApplicationService.getAllMixedFiles().done(
 								function(data) {
 									self.mixedFiles = data;
+									$.each(data, function(index, data) {     
+		                                  //!!!--Here is the main catch------>fnAddData
+		                                  $('#example1').dataTable().fnAddData( [  data.fileId,	
+		                                                                          data.fileName,
+		                                                                          "",
+		                                                                          data.fileSize,data ]
+		                                                                        );      
+
+		                                });
+   
 									self.scope.$apply();
 									$(".modal").fadeOut();
-								});
+								}).fail(function(e) {
+									$(".modal").fadeOut();
+								});;
 					}
 				},
 
@@ -180,6 +206,8 @@ define(
 								$(".modal").fadeOut();
 								self.scope.$apply();
 
+							}).fail(function(e) {
+								$(".modal").fadeOut();
 							});
 				},
 
@@ -257,7 +285,9 @@ define(
 								self.scope.musicCtrl.myFile = null;
 								$(".modal").fadeOut();
 								self.scope.$apply()
-							});
+							}).fail(function(e) {
+								$(".modal").fadeOut();
+							});;
 				},
 
 				playByteArray : function(file) {

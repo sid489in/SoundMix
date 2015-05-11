@@ -9,16 +9,16 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
-
-import org.hibernate.type.LobType;
 
 @Entity
 @Table(name = "FILE_INFO")
 public class FileInfo {
 
 	@Id
+	@Column(name="fileId")
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private int fileId;
 

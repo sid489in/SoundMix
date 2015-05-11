@@ -21,6 +21,8 @@
 		<property name="url" value="jdbc:mysql://localhost:3306/musicdb" />
 		<property name="username" value="root" />
 		<property name="password" value="root" />
+		<!-- <property name="driverClassName" value="com.mysql.jdbc.GoogleDriver" />
+		<property name="url" value="jdbc:google:mysql://sid489in:musicdb/musicdb?user=root" /> -->
 	</bean>
 
 	<bean id="sessionFactory"

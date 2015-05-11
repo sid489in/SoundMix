@@ -21,7 +21,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();
@@ -39,7 +40,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();
@@ -57,7 +59,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();
@@ -75,7 +78,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();
@@ -95,7 +99,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();
@@ -109,8 +114,7 @@ define(
 									mixSongs : function(fileIds) {
 										var deferred = jQuery.Deferred();
 										var changes = {
-											"sourceFileId" : fileIds[0],
-											"targetFileId" : fileIds[1]
+											"fileIds" : fileIds
 										}
 										jQuery
 												.ajax({
@@ -124,7 +128,8 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
-
+														return deferred
+														.reject(result);
 													}
 												});
 										return deferred.promise();

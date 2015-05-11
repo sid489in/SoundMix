@@ -13,7 +13,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioInputStream;
@@ -40,7 +42,8 @@ public class MusicServiceImpl {
 	@Autowired
 	private MusicDaoImpl dao;
 
-	private static final String TEMP_FOLDER ="c:\\mixedFiles\\";
+	private static final String TEMP_FOLDER = "c:\\mixedFiles\\";
+
 	public void createChannel() {
 		for (int i = 0; i < 4; i++) {
 			Channel c = new Channel();
@@ -68,9 +71,8 @@ public class MusicServiceImpl {
 		}
 		return fileInfo;
 	}
-	
-	public String getMixedFilePath(String fileId)
-	{
+
+	public String getMixedFilePath(String fileId) {
 		Object o = dao.getMixedFilePath(Integer.valueOf(fileId));
 		return (String) o;
 	}
@@ -81,16 +83,16 @@ public class MusicServiceImpl {
 		for (Object o : lst) {
 			Object[] obj = (Object[]) o;
 			FileInfo file = new FileInfo();
-			file.setFileId(Integer.valueOf(obj[0].toString()));	
-			file.setFileName(obj[1].toString());	
-			file.setFileSize(obj[2].toString());	
-			file.setFileType(obj[3].toString());	
-			file.setMetaData((FileMetaData) obj[4]);	
+			file.setFileId(Integer.valueOf(obj[0].toString()));
+			file.setFileName(obj[1].toString());
+			file.setFileSize(obj[2].toString());
+			file.setFileType(obj[3].toString());
+			file.setMetaData((FileMetaData) obj[4]);
 			files.add(toJsonElement(file));
 		}
 		return files;
 	}
-	
+
 	public JsonArray getAllMixedFiles() {
 		JsonArray files = new JsonArray();
 		List<Object> lst = dao.getAllMixedFiles();
@@ -100,11 +102,10 @@ public class MusicServiceImpl {
 		}
 		return files;
 	}
-	
-	public void deleteMusicFile(String fileId)
-	{
-		if(!StringUtils.isEmpty(fileId))
-		dao.deleteMixedFile(Integer.valueOf(fileId));
+
+	public void deleteMusicFile(String fileId) {
+		if (!StringUtils.isEmpty(fileId))
+			dao.deleteMixedFile(Integer.valueOf(fileId));
 	}
 
 	public static String humanReadableByteCount(long bytes, boolean si) {
@@ -139,62 +140,62 @@ public class MusicServiceImpl {
 		return musicList;
 	}
 
-	private byte[] convertToByteArray(short[] content) {
-		byte[] end = new byte[content.length * 2];
-		ByteBuffer.wrap(end).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
-				.put(content);
-		return end;
-	}
-	public JsonObject mixSongs(JsonObject files) throws Exception{
+	public JsonObject mixSongs(JsonObject files) throws Exception {
 		System.out.println("Mix File Started");
 		int fileId1 = 0, fileId2 = 0;
-		fileId1 = files.get("sourceFileId").getAsInt();
-		fileId2 = files.get("targetFileId").getAsInt();
-		FileInfo sourceFile = dao.getFileById(fileId1);
-		FileInfo targetFile = dao.getFileById(fileId2);
-
-		List<Short> file1MusicList = createMusicArray(sourceFile
-				.getFileContents());
-		List<Short> file2MusicList = createMusicArray(targetFile
-				.getFileContents());
-
-		short[] arrayMusic1 = new short[sourceFile.getFileContents().length/2];
-		// to turn bytes to shorts as either big endian or little endian. 
-		ByteBuffer.wrap(sourceFile.getFileContents()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(arrayMusic1);
-		
-		short[] arrayMusic2 = new short[targetFile.getFileContents().length/2];
-		// to turn bytes to shorts as either big endian or little endian. 
-		ByteBuffer.wrap(targetFile.getFileContents()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().get(arrayMusic2);
-		
-		int size_a = arrayMusic1.length;
-		int size_b = arrayMusic2.length;
-
-		if (size_a > size_b) {
-			short[] temp = new short[size_a];
-			System.arraycopy(arrayMusic2, 0, temp, 0, arrayMusic2.length);
-			// adding series of '0'
-			for (int i = size_b + 1; i < size_a; i++) {
-				temp[i] = (short) 0;
-			}
-			arrayMusic2 = temp;
-		} else if (size_a < size_b) {
-			short[] temp = new short[size_b];
-			System.arraycopy(arrayMusic1, 0, temp, 0, arrayMusic1.length);
-			for (int i = size_a + 1; i < size_b; i++) {
-				temp[i] = (short) 0;
-			}
-			arrayMusic1 = temp;
-		} else {
-			// do nothing
+		JsonArray fileIds = files.get("fileIds").getAsJsonArray();
+		List<FileInfo> sourceFiles = new ArrayList<FileInfo>();
+		for (int i = 0; i < fileIds.size(); i++) {
+			int fileId = fileIds.get(i).getAsInt();
+			FileInfo file = dao.getFileById(fileId);
+			sourceFiles.add(file);
 		}
 
-		short[] output = new short[arrayMusic1.length];
+		List<short[]> filesShortArray = new ArrayList<short[]>();
+		for (FileInfo f : sourceFiles) {
+			byte[] bytes = f.getFileContents();
+			short[] shorts = new short[bytes.length / 2];
+			// to turn bytes to shorts as either big endian or little endian.
+			ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
+					.asShortBuffer().get(shorts);
+			filesShortArray.add(shorts);
+		}
+
+		for (int i = 0; i < filesShortArray.size()-1; i++) {
+			short[] arrayMusic1 = filesShortArray.get(i);
+			short[] arrayMusic2 = filesShortArray.get(i + 1);
+			int size_a = arrayMusic1.length;
+			int size_b = arrayMusic2.length;
+			if (size_a > size_b) {
+				short[] temp = new short[size_a];
+				System.arraycopy(arrayMusic2, 0, temp, 0, arrayMusic2.length);
+				// adding series of '0'
+				for (int j = size_b + 1; j < size_a; j++) {
+					temp[j] = (short) 0;
+				}
+				arrayMusic2 = temp;
+			} else if (size_a < size_b) {
+				short[] temp = new short[size_b];
+				System.arraycopy(arrayMusic1, 0, temp, 0, arrayMusic1.length);
+				for (int j = size_a + 1; j < size_b; j++) {
+					temp[j] = (short) 0;
+				}
+				arrayMusic1 = temp;
+			} else {
+				// do nothing
+			}
+		}
+
+		short[] output = new short[filesShortArray.get(0).length];
+		int nosFiles = filesShortArray.size();
 		for (int i = 0; i < output.length; i++) {
-
-			float samplef1 = arrayMusic1[i] / 32768.0f;
-			float samplef2 = arrayMusic2[i] / 32768.0f;
-
-			float mixed = samplef1 + samplef2;
+			float samplefile = 0f;
+			float mixed = 0f;
+			for (int j = 0; j < nosFiles; j++) {
+				short[] arrayMusic = filesShortArray.get(0);
+				samplefile = arrayMusic[i] / 32768.0f;
+				mixed += samplefile;
+			}
 			// reduce the volume a bit:
 			mixed *= 0.8;
 			// hard clipping
@@ -206,39 +207,67 @@ public class MusicServiceImpl {
 
 			output[i] = outputSample;
 		}
-	    
-		 // to turn shorts back to bytes.
-        byte[] end = new byte[output.length * 2];
-        ByteBuffer.wrap(end).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer().put(output);
-        InputStream b_in = new ByteArrayInputStream(end);
+
+		// to turn shorts back to bytes.
+		byte[] end = new byte[output.length * 2];
+		ByteBuffer.wrap(end).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
+				.put(output);
+		InputStream b_in = new ByteArrayInputStream(end);
 		try {
-			
+			FileInfo sourceFile = sourceFiles.get(0);
 			FileMetaData metaData = sourceFile.getMetaData();
-			
-			
+
 			AudioFormat format = new AudioFormat(metaData.getSampleRate(),
-					metaData.getSampleSizeInBits(),
-					metaData.getChannel(), true, false);
-				AudioInputStream stream2 = new AudioInputStream(b_in, format,
-						end.length);
-				String fileName = "SampleMusicFile"+Math.random()+".wav";
-				File file = new File(TEMP_FOLDER + fileName);
-				file.getParentFile().mkdirs();    
-				AudioSystem.write(stream2, Type.WAVE, file);
-				b_in.close();
-			
+					metaData.getSampleSizeInBits(), metaData.getChannel(),
+					true, false);
+
+			AudioInputStream stream2 = new AudioInputStream(b_in, format,
+					end.length/format.getFrameSize());
+						
+			MixedFiles mixedFile = new MixedFiles();
+			Set<FileInfo>  srcFiles = new HashSet<FileInfo>(sourceFiles);
+			String fileName = null;
+			for(FileInfo f : srcFiles)
+			{
+				if(mixedFile.getChannel1() == null)
+				{
+					mixedFile.setChannel1(f);
+					fileName = f.getFileName().substring(0,f.getFileName().indexOf("."));
+				}
+				else if(mixedFile.getChannel2() == null)
+				{
+					mixedFile.setChannel2(f);
+					fileName += "_"+ f.getFileName().substring(0,f.getFileName().indexOf("."));
+				}
+				else if(mixedFile.getChannel3() == null)
+				{
+					mixedFile.setChannel3(f);
+					fileName += "_"+ f.getFileName().substring(0,f.getFileName().indexOf("."));
+				}
+				else if(mixedFile.getChannel4() == null)
+				{
+					mixedFile.setChannel4(f);
+					fileName += "_"+ f.getFileName().substring(0,f.getFileName().indexOf("."));
+				}
+			}
+			fileName = fileName + ".wav";
+			File file = new File(TEMP_FOLDER + fileName);
+			file.getParentFile().mkdirs();
+			AudioSystem.write(stream2, Type.WAVE, file);
+			b_in.close();
+
 			System.out.println("FILEEEEEEEEEEE CREATEDDDDD");
-			
+
 			long audioFileLength = file.length();
 			int frameSize = format.getFrameSize();
 			float frameRate = format.getFrameRate();
 			float durationInSeconds = (audioFileLength / (frameSize * frameRate));
-			
-			System.out.println("DURRRRRRRRR"+ durationInSeconds);
-			MixedFiles mixedFile = new MixedFiles();
-			mixedFile.setSourceFile(sourceFile);
-			mixedFile.setTargetFile(targetFile);
-			//mixedFile.setFileContents(end);
+
+			float numberOfMinutes = ((durationInSeconds % 86400 ) % 3600 ) / 60; 
+					
+			System.out.println("DURRRRRRRRR" + durationInSeconds);
+
+			// mixedFile.setFileContents(end);
 			mixedFile.setMetaData(metaData);
 			String fileSize = humanReadableByteCount((output.length * 2), false);
 			mixedFile.setFileName(fileName);
@@ -253,7 +282,9 @@ public class MusicServiceImpl {
 		}
 		return null;
 	}
-	public JsonObject uploadFile(InputStream stream, JsonObject fileDetail, JsonObject channelJson) {
+
+	public JsonObject uploadFile(InputStream stream, JsonObject fileDetail,
+			JsonObject channelJson) {
 		JsonObject fileInfo = new JsonObject();
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -274,7 +305,8 @@ public class MusicServiceImpl {
 					baseFormat.getSampleRate(), 16, baseFormat.getChannels(),
 					baseFormat.getChannels() * 2, baseFormat.getSampleRate(),
 					false);
-			AudioInputStream din = AudioSystem.getAudioInputStream(decodedFormat, in);
+			AudioInputStream din = AudioSystem.getAudioInputStream(
+					decodedFormat, in);
 			out = new ByteArrayOutputStream();
 			buffer = new byte[1024];
 			while (true) {
@@ -334,32 +366,49 @@ public class MusicServiceImpl {
 			json.addProperty("fileId", file.getFileId());
 			json.addProperty("fileName", file.getFileName());
 			json.addProperty("fileSize", file.getFileSize());
-			/*byte[] bytesEncoded = Base64.encodeBase64(file.getFileContents());
-			json.addProperty("fileContent", new String(bytesEncoded));*/
+			/*
+			 * byte[] bytesEncoded =
+			 * Base64.encodeBase64(file.getFileContents());
+			 * json.addProperty("fileContent", new String(bytesEncoded));
+			 */
 			if (file.getChannel() != null) {
 				Channel ch = file.getChannel();
 				JsonObject channel = toJsonElement(ch);
 				json.add("channel", channel);
 			}
-		}
-		else if (o instanceof MixedFiles) {
+		} else if (o instanceof MixedFiles) {
 			MixedFiles file = (MixedFiles) o;
 			json.addProperty("fileId", file.getFileId());
 			json.addProperty("fileName", file.getFileName());
 			json.addProperty("fileSize", file.getFileSize());
 			json.addProperty("filePath", file.getFilePath());
-			/*byte[] bytesEncoded = Base64.encodeBase64(file.getFileContents());
-			json.addProperty("fileContent", new String(bytesEncoded));*/
-			if (file.getSourceFile() != null) {
-				FileInfo sourceFile = file.getSourceFile();
-				JsonObject sourceFileJson = toJsonElement(sourceFile);
-				json.add("sourceFile", sourceFileJson);
+			/*
+			 * byte[] bytesEncoded =
+			 * Base64.encodeBase64(file.getFileContents());
+			 * json.addProperty("fileContent", new String(bytesEncoded));
+			 */
+			JsonArray sourceFiles = new JsonArray();
+			if(file.getChannel1() != null)
+			{
+				JsonObject srcFile = toJsonElement(file.getChannel1());
+				sourceFiles.add(srcFile);
 			}
-			if (file.getTargetFile() != null) {
-				FileInfo targetFile = file.getTargetFile();
-				JsonObject targetFileJson = toJsonElement(targetFile);
-				json.add("targetFile", targetFileJson);
+			if(file.getChannel2() != null)
+			{
+				JsonObject srcFile = toJsonElement(file.getChannel2());
+				sourceFiles.add(srcFile);
 			}
+			if(file.getChannel3() != null)
+			{
+				JsonObject srcFile = toJsonElement(file.getChannel3());
+				sourceFiles.add(srcFile);
+			}
+			if(file.getChannel4() != null)
+			{
+				JsonObject srcFile = toJsonElement(file.getChannel4());
+				sourceFiles.add(srcFile);
+			}
+			json.add("sourceFiles", sourceFiles);
 		}
 		return json;
 	}
