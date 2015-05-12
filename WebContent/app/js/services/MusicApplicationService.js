@@ -40,6 +40,7 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
+														alert(e);
 														return deferred
 														.reject(result);
 													}
@@ -78,6 +79,7 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
+														alert(e);
 														return deferred
 														.reject(result);
 													}
@@ -99,6 +101,7 @@ define(
 																.resolve(result);
 													},
 													fail : function(result) {
+														alert(e);
 														return deferred
 														.reject(result);
 													}

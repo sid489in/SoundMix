@@ -1,10 +1,8 @@
 package com.rest;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 
-import javax.websocket.server.PathParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -15,6 +13,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.cxf.jaxrs.ext.multipart.Multipart;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +56,8 @@ public class MusicAppRestResource {
 			return Response.ok(files.toString()).build();
 		} catch (Exception e) {
 			e.printStackTrace();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
-		return null;
 	}
 	
 	@GET
@@ -86,8 +85,8 @@ public class MusicAppRestResource {
 			return Response.ok(fileJson.toString()).build();
 		} catch (Exception e) {
 			e.printStackTrace();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
-		return null;
 	}
 	
 	@POST
@@ -101,8 +100,8 @@ public class MusicAppRestResource {
 			return Response.ok(fileJson.toString()).build();
 		} catch (Exception e) {
 			e.printStackTrace();
+			return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
 		}
-		return null;
 	}
 
 	@DELETE
