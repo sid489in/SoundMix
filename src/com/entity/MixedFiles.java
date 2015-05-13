@@ -1,5 +1,6 @@
 package com.entity;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -16,6 +17,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "MIXED_FILES")
@@ -43,6 +46,9 @@ public class MixedFiles {
 
 	@Column(name = "FILE_SIZE")
 	private String fileSize;
+	
+	@Column(name = "DURATION")
+	private String duration;
 
 	@Column(name = "FILE_TYPE")
 	private String fileType;
@@ -58,6 +64,10 @@ public class MixedFiles {
 	@Column(name ="FILE_PATH")
 	private String filePath;
 
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="CREATION_DATE")
+	private Date creationDate;
+	
 	public int getFileId() {
 		return fileId;
 	}
@@ -114,6 +124,14 @@ public class MixedFiles {
 		this.fileSize = fileSize;
 	}
 
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
+	}
+
 	public String getFileType() {
 		return fileType;
 	}
@@ -146,4 +164,13 @@ public class MixedFiles {
 		this.filePath = filePath;
 	}
 
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	
 }

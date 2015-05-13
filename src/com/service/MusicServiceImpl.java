@@ -9,7 +9,11 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -89,7 +93,12 @@ public class MusicServiceImpl {
 				file.setFileName(obj[1].toString());
 				file.setFileSize(obj[2].toString());
 				file.setFileType(obj[3].toString());
-				file.setMetaData((FileMetaData) obj[4]);
+				file.setDuration(obj[4].toString());
+				Timestamp timestamp = (Timestamp) obj[5];
+			    long milliseconds = timestamp.getTime() + (timestamp.getNanos() / 1000000);
+			    Date d = new Date(milliseconds);
+				file.setCreationDate(new Date(milliseconds));
+				file.setMetaData((FileMetaData) obj[6]);
 				files.add(toJsonElement(file));
 			}
 		} catch (Exception e) {
@@ -97,6 +106,28 @@ public class MusicServiceImpl {
 		}
 
 		return files;
+	}
+	
+	private static String getDurationString(int seconds) {
+
+	    int hours = seconds / 3600;
+	    int minutes = (seconds % 3600) / 60;
+	    seconds = seconds % 60;
+
+	    return twoDigitString(hours) + " : " + twoDigitString(minutes) + " : " + twoDigitString(seconds);
+	}
+
+	private static String twoDigitString(int number) {
+
+	    if (number == 0) {
+	        return "00";
+	    }
+
+	    if (number / 10 == 0) {
+	        return "0" + number;
+	    }
+
+	    return String.valueOf(number);
 	}
 
 	public JsonArray getAllMixedFiles() {
@@ -264,18 +295,18 @@ public class MusicServiceImpl {
 			long audioFileLength = file.length();
 			int frameSize = format.getFrameSize();
 			float frameRate = format.getFrameRate();
-			float durationInSeconds = (audioFileLength / (frameSize * frameRate));
-
-			float numberOfMinutes = ((durationInSeconds % 86400) % 3600) / 60;
-
-			System.out.println("DURRRRRRRRR" + durationInSeconds);
-
+			
+			int durationInSeconds = (int) (audioFileLength / (frameSize * frameRate));
+			String formattedDate = getDurationString(durationInSeconds);
+			System.out.println("DURRRRRRRRR" + formattedDate);
 			// mixedFile.setFileContents(end);
 			mixedFile.setMetaData(metaData);
 			String fileSize = humanReadableByteCount((output.length * 2), false);
 			mixedFile.setFileName(fileName);
 			mixedFile.setFileSize(fileSize);
 			mixedFile.setFilePath(file.getPath());
+			mixedFile.setCreationDate(new Date());
+			mixedFile.setDuration(formattedDate);
 			int id = dao.saveMixedFile(mixedFile);
 			mixedFile.setFileId(id);
 			return toJsonElement(mixedFile);
@@ -308,6 +339,10 @@ public class MusicServiceImpl {
 					baseFormat.getSampleRate(), 16, baseFormat.getChannels(),
 					baseFormat.getChannels() * 2, baseFormat.getSampleRate(),
 					false);
+			System.out.println("###SAMPLE RATE"+ decodedFormat.getSampleRate());
+			System.out.println("###SAMPLE SOZE"+ decodedFormat.getSampleSizeInBits());
+			System.out.println("###Channels"+ decodedFormat.getChannels());
+			
 			AudioInputStream din = AudioSystem.getAudioInputStream(
 					decodedFormat, in);
 			out = new ByteArrayOutputStream();
@@ -325,6 +360,7 @@ public class MusicServiceImpl {
 			file.setFileName(fileName);
 			file.setFileContents(ret);
 			file.setFileType(fileType);
+			file.setCreationDate(new Date());
 			String fileSize = humanReadableByteCount(ret.length, false);
 			if (channelJson != null) {
 				Channel c = new Channel();
@@ -333,13 +369,7 @@ public class MusicServiceImpl {
 				file.setChannel(c);
 			}
 			file.setFileSize(fileSize);
-			FileMetaData metaData = new FileMetaData();
-			metaData.setSampleRate(decodedFormat.getSampleRate());
-			metaData.setSampleSizeInBits(16);
-			metaData.setFrameRate(decodedFormat.getSampleRate());
-			metaData.setFrameSize((baseFormat.getChannels() * 2));
-			metaData.setChannel(decodedFormat.getChannels());
-			file.setMetaData(metaData);
+			
 			dao.saveMusicDetails(file);
 			fileInfo = toJsonElement(file);
 
@@ -357,6 +387,8 @@ public class MusicServiceImpl {
 	}
 
 	private JsonObject toJsonElement(Object o) {
+		DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+		 
 		JsonObject json = new JsonObject();
 		if (o instanceof Channel) {
 			Channel channel = (Channel) o;
@@ -369,6 +401,9 @@ public class MusicServiceImpl {
 			json.addProperty("fileId", file.getFileId());
 			json.addProperty("fileName", file.getFileName());
 			json.addProperty("fileSize", file.getFileSize());
+			json.addProperty("duration", file.getDuration());
+			String dateFormatted = formatter.format(file.getCreationDate());
+			json.addProperty("creationDate", dateFormatted);
 			/*
 			 * byte[] bytesEncoded =
 			 * Base64.encodeBase64(file.getFileContents());
@@ -385,6 +420,9 @@ public class MusicServiceImpl {
 			json.addProperty("fileName", file.getFileName());
 			json.addProperty("fileSize", file.getFileSize());
 			json.addProperty("filePath", file.getFilePath());
+			json.addProperty("duration", file.getDuration());
+			String dateFormatted = formatter.format(file.getCreationDate());
+			json.addProperty("creationDate", dateFormatted);
 			/*
 			 * byte[] bytesEncoded =
 			 * Base64.encodeBase64(file.getFileContents());

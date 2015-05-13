@@ -75,7 +75,7 @@ public class MusicDaoImpl {
 	}
 
 	public List<Object> getAllFiles() {
-		return getHibernateTemplate().find("select f.fileId, f.fileName, f.fileSize, f.fileType, f.metaData from FileInfo f");
+		return getHibernateTemplate().find("select f.fileId, f.fileName, f.fileSize, f.fileType, f.duration, f.creationDate, f.metaData from FileInfo f");
 		//return getHibernateTemplate().find("select f.fileName, f.fileSize, f.fileType, f.metaData from FileInfo f");
 	}
 

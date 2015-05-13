@@ -1,5 +1,7 @@
 package com.entity;
 
+import java.util.Date;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -11,6 +13,8 @@ import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
 @Entity
 @Table(name = "FILE_INFO")
@@ -27,6 +31,9 @@ public class FileInfo {
 	@Column(name = "FILE_SIZE")
 	private String fileSize;
 
+	@Column(name = "DURATION")
+	private String duration;
+	
 	@Column(name = "FILE_TYPE")
 	private String fileType;
 
@@ -37,6 +44,11 @@ public class FileInfo {
 	@Lob
 	@Column(name = "FILE_CONTENTS", columnDefinition = "blob")
 	private byte[] fileContents;
+	
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name="CREATION_DATE")
+	private Date creationDate;
+	
 
 	@OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
 	@JoinColumn(name = "CHANNEL_ID")
@@ -98,4 +110,20 @@ public class FileInfo {
 		this.metaData = metaData;
 	}
 
+	public Date getCreationDate() {
+		return creationDate;
+	}
+
+	public void setCreationDate(Date creationDate) {
+		this.creationDate = creationDate;
+	}
+
+	public String getDuration() {
+		return duration;
+	}
+
+	public void setDuration(String duration) {
+		this.duration = duration;
+	}
+	
 }

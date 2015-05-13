@@ -51,7 +51,8 @@ define(
 				                "targets": [ 0 ],
 				                "visible": false,
 				                "searchable": false
-				            }]
+				            }],
+				            aaSorting : [[4, 'desc']]
 				});
 				
 				var self = this;
@@ -82,7 +83,8 @@ define(
 						                "targets": -1,
 						                "data": null,
 						                "defaultContent": "<center><button>Download</button><center>"
-						            }]
+						            }],
+					aaSorting : [[3, 'desc']]
 				});
 				
 				$('#example1 tbody').on( 'click', 'button', function () {
@@ -137,8 +139,9 @@ define(
 			                                  $('#example').dataTable().fnAddData( [  data.fileId,	
 			                                                                          data.fileName,
 			                                                                          "mp3/wav",
-			                                                                          "",
-			                                                                          data.fileSize ]
+			                                                                          data.duration,
+			                                                                          data.fileSize ,
+			                                                                          data.creationDate]
 			                                                                        );      
 
 			                                });
@@ -160,8 +163,9 @@ define(
 		                                  //!!!--Here is the main catch------>fnAddData
 		                                  $('#example1').dataTable().fnAddData( [  data.fileId,	
 		                                                                          data.fileName,
-		                                                                          "",
-		                                                                          data.fileSize,data ]
+		                                                                          data.duration,
+		                                                                          data.fileSize,
+		                                                                          data.creationDate, data ]
 		                                                                        );      
 
 		                                });
