@@ -158,6 +158,7 @@ public class MusicServiceImpl {
 		}
 
 		List<short[]> filesShortArray = new ArrayList<short[]>();
+		List<short[]> updatedShortArray = new ArrayList<short[]>();
 		for (FileInfo f : sourceFiles) {
 			byte[] bytes = f.getFileContents();
 			short[] shorts = new short[bytes.length / 2];
@@ -166,39 +167,36 @@ public class MusicServiceImpl {
 					.asShortBuffer().get(shorts);
 			filesShortArray.add(shorts);
 		}
-
-		for (int i = 0; i < filesShortArray.size() - 1; i++) {
+		int mixedFileSize = 0;
+		for (int i = 0; i < filesShortArray.size(); i++) {
 			short[] arrayMusic1 = filesShortArray.get(i);
-			short[] arrayMusic2 = filesShortArray.get(i + 1);
 			int size_a = arrayMusic1.length;
-			int size_b = arrayMusic2.length;
-			if (size_a > size_b) {
-				short[] temp = new short[size_a];
-				System.arraycopy(arrayMusic2, 0, temp, 0, arrayMusic2.length);
+			if(size_a > mixedFileSize)
+			{
+				mixedFileSize = size_a;
+			}
+		}
+		for (int i = 0; i < filesShortArray.size(); i++) {
+			short[] arrayMusic1 = filesShortArray.get(i);
+			int size_a = arrayMusic1.length;
+			System.out.println("S@@@@"+arrayMusic1.length);
+			if (size_a < mixedFileSize) {
+				short[] temp = new short[mixedFileSize];
 				// adding series of '0'
-				for (int j = size_b + 1; j < size_a; j++) {
-					temp[j] = (short) 0;
-				}
-				arrayMusic2 = temp;
-			} else if (size_a < size_b) {
-				short[] temp = new short[size_b];
-				System.arraycopy(arrayMusic1, 0, temp, 0, arrayMusic1.length);
-				for (int j = size_a + 1; j < size_b; j++) {
+				for (int j = size_a + 1; j < mixedFileSize; j++) {
 					temp[j] = (short) 0;
 				}
 				arrayMusic1 = temp;
-			} else {
-				// do nothing
 			}
+			updatedShortArray.add(arrayMusic1);
 		}
-
-		short[] output = new short[filesShortArray.get(0).length];
-		int nosFiles = filesShortArray.size();
+		short[] output = new short[mixedFileSize];
+		int nosFiles = updatedShortArray.size();
 		for (int i = 0; i < output.length; i++) {
 			float samplefile = 0f;
 			float mixed = 0f;
 			for (int j = 0; j < nosFiles; j++) {
-				short[] arrayMusic = filesShortArray.get(0);
+				short[] arrayMusic = updatedShortArray.get(j);
 				samplefile = arrayMusic[i] / 32768.0f;
 				mixed += samplefile;
 			}
