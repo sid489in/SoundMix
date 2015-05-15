@@ -369,7 +369,22 @@ public class MusicServiceImpl {
 				file.setChannel(c);
 			}
 			file.setFileSize(fileSize);
+			FileMetaData metaData = new FileMetaData();
+			metaData.setSampleRate(decodedFormat.getSampleRate());
+			metaData.setSampleSizeInBits(16);
+			metaData.setFrameRate(decodedFormat.getSampleRate());
+			metaData.setFrameSize((baseFormat.getChannels() * 2));
+			metaData.setChannel(decodedFormat.getChannels());
 			
+			int frameSize = decodedFormat.getFrameSize();
+			float frameRate = decodedFormat.getFrameRate();
+			
+			int durationInSeconds = (int)(ret.length / (frameSize * frameRate));
+			String formattedDate = getDurationString(durationInSeconds);
+			System.out.println("DURRRRRRRRR" + formattedDate);
+			
+			file.setMetaData(metaData);
+			file.setDuration(formattedDate);
 			dao.saveMusicDetails(file);
 			fileInfo = toJsonElement(file);
 
