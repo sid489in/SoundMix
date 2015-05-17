@@ -189,16 +189,6 @@ public class MusicServiceImpl {
 			dao.deleteMixedFile(Integer.valueOf(fileId));
 	}
 
-	public static String humanReadableByteCount(long bytes, boolean si) {
-		int unit = si ? 1000 : 1024;
-		if (bytes < unit)
-			return bytes + " B";
-		int exp = (int) (Math.log(bytes) / Math.log(unit));
-		String pre = (si ? "kMGTPE" : "KMGTPE").charAt(exp - 1)
-				+ (si ? "" : "i");
-		return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
-	}
-
 	private short[] buildShortArray(List<Short> music) {
 		short[] shortData = new short[music.size()];
 		for (int j = 0; j < music.size(); j++) {
@@ -253,7 +243,6 @@ public class MusicServiceImpl {
 		for (int i = 0; i < filesShortArray.size(); i++) {
 			short[] arrayMusic1 = filesShortArray.get(i);
 			int size_a = arrayMusic1.length;
-			System.out.println("S@@@@" + arrayMusic1.length);
 			if (size_a < mixedFileSize) {
 				short[] temp = new short[mixedFileSize];
 				// adding series of '0'
@@ -328,23 +317,21 @@ public class MusicServiceImpl {
 				}
 			}
 			fileName = fileName + ".wav";
-			System.out.println("FILEEEEEEEEEEE CREATEDDDDD");
 
 			int frameSize = format.getFrameSize();
 			float frameRate = format.getFrameRate();
 
 			int durationInSeconds = (int) (end.length / (frameSize * frameRate));
 			String formattedDate = getDurationString(durationInSeconds);
-			System.out.println("DURRRRRRRRR" + formattedDate);
-			mixedFile.setFileContents(end);
 			mixedFile.setMetaData(metaData);
-			String fileSize = humanReadableByteCount((output.length * 2), false);
 			mixedFile.setFileName(fileName);
-			mixedFile.setFileSize(fileSize);
 			mixedFile.setCreationDate(new Date());
 			mixedFile.setDuration(formattedDate);
 			int id = dao.saveMixedFile(mixedFile);
 			mixedFile.setFileId(id);
+			mixedFile.setFileContents(end);
+			ExecuteSaveThread thread = new ExecuteSaveThread(mixedFile, dao);
+			thread.call();
 			return toJsonElement(mixedFile);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -358,7 +345,7 @@ public class MusicServiceImpl {
 		JsonObject fileInfo = new JsonObject();
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[8192];
 			while (true) {
 				int r = stream.read(buffer);
 				if (r == -1)
@@ -375,16 +362,11 @@ public class MusicServiceImpl {
 					baseFormat.getSampleRate(), 16, baseFormat.getChannels(),
 					baseFormat.getChannels() * 2, baseFormat.getSampleRate(),
 					false);
-			System.out
-					.println("###SAMPLE RATE" + decodedFormat.getSampleRate());
-			System.out.println("###SAMPLE SOZE"
-					+ decodedFormat.getSampleSizeInBits());
-			System.out.println("###Channels" + decodedFormat.getChannels());
 
 			AudioInputStream din = AudioSystem.getAudioInputStream(
 					decodedFormat, in);
 			out = new ByteArrayOutputStream();
-			buffer = new byte[1024];
+			buffer = new byte[8192];
 			while (true) {
 				int r = din.read(buffer);
 				if (r == -1)
@@ -399,14 +381,6 @@ public class MusicServiceImpl {
 			file.setFileContents(ret);
 			file.setFileType(fileType);
 			file.setCreationDate(new Date());
-			String fileSize = humanReadableByteCount(ret.length, false);
-			if (channelJson != null) {
-				Channel c = new Channel();
-				c.setChannelId(channelJson.get("channelId").getAsInt());
-				c.setChannelName(channelJson.get("channelName").getAsString());
-				file.setChannel(c);
-			}
-			file.setFileSize(fileSize);
 			FileMetaData metaData = new FileMetaData();
 			metaData.setSampleRate(decodedFormat.getSampleRate());
 			metaData.setSampleSizeInBits(16);
@@ -419,11 +393,11 @@ public class MusicServiceImpl {
 
 			int durationInSeconds = (int) (ret.length / (frameSize * frameRate));
 			String formattedDate = getDurationString(durationInSeconds);
-			System.out.println("DURRRRRRRRR" + formattedDate);
 
 			file.setMetaData(metaData);
 			file.setDuration(formattedDate);
-			dao.saveMusicDetails(file);
+			ExecuteSaveThread thread = new ExecuteSaveThread(file, dao);
+			thread.call();
 			fileInfo = toJsonElement(file);
 
 		} catch (FileNotFoundException e) {
@@ -436,6 +410,11 @@ public class MusicServiceImpl {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return fileInfo;
 	}
 
