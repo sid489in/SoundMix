@@ -18,6 +18,10 @@ define([ 'angular' ], function(angular) {
 					} else {
 						$(elem).modal('hide');
 					}
+				});
+				
+				elem.on('hidden.bs.modal', function () {
+				    scope.parent.closeMusicDialog();
 				})
 
 			}

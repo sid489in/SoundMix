@@ -2,6 +2,7 @@ package com.entity;
 
 import java.util.Date;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -42,6 +43,7 @@ public class FileInfo {
 	private FileMetaData metaData;
 
 	@Lob
+	@Basic(fetch=FetchType.LAZY)
 	@Column(name = "FILE_CONTENTS", columnDefinition = "blob")
 	private byte[] fileContents;
 	

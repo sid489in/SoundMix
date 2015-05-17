@@ -122,8 +122,14 @@ public class MusicAppRestResource {
 	@GET
 	@Path("download")
 	@Produces(MediaType.APPLICATION_OCTET_STREAM)
-	public Response downloadFile(@QueryParam("fileId") String fileId) {
-	    String filePath = musicServiceImpl.getMixedFilePath(fileId);
+	public Response downloadFile(@QueryParam("fileId") String fileId, @QueryParam("fileName") String fileName) {
+	    String filePath = null;
+		try {
+			filePath = musicServiceImpl.getMixedFileContents(fileId, fileName);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	    File file = new File(filePath);
 	    ResponseBuilder response = Response.ok((Object) file);
 	    response.header("Content-Disposition",

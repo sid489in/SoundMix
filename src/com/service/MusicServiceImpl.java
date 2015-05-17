@@ -42,7 +42,8 @@ public class MusicServiceImpl {
 	@Autowired
 	private MusicDaoImpl dao;
 
-	private static final String TEMP_FOLDER = "c:\\mixedFiles\\";
+	private static final String TEMP_FOLDER = System
+			.getProperty("java.io.tmpdir");
 
 	public void createChannel() {
 		for (int i = 0; i < 4; i++) {
@@ -64,22 +65,47 @@ public class MusicServiceImpl {
 
 	public JsonObject getFile(JsonObject channelJson) {
 		JsonObject fileInfo = new JsonObject();
-		try
-		{
+		try {
 			if (channelJson != null) {
 				Integer channelId = channelJson.get("channelId").getAsInt();
 				FileInfo file = dao.getFile(channelId);
 				fileInfo = toJsonElement(file);
-			}	
-		}catch(Exception e){
+			}
+		} catch (Exception e) {
 			throw e;
 		}
 		return fileInfo;
 	}
 
-	public String getMixedFilePath(String fileId) {
-		Object o = dao.getMixedFilePath(Integer.valueOf(fileId));
-		return (String) o;
+	public String getMixedFileContents(String fileId, String fileName) throws Exception {
+		File file = null;
+		if(fileName != null)
+		{
+			file = new File(TEMP_FOLDER + fileName);
+			if(file.isFile())
+			{
+				return file.getPath();
+			}
+		}
+		Object[] o = (Object[]) dao.getMixedFileWithContents(Integer
+				.valueOf(fileId));
+		if (null != o) {
+			fileName = o[0].toString();
+			file = new File(TEMP_FOLDER + fileName);
+			byte[] contents = (byte[]) o[2];
+			FileMetaData metaData = (FileMetaData) o[1];
+			InputStream b_in = new ByteArrayInputStream(contents);
+			AudioFormat format = new AudioFormat(metaData.getSampleRate(),
+					metaData.getSampleSizeInBits(), metaData.getChannel(),
+					true, false);
+			AudioInputStream stream2 = new AudioInputStream(b_in, format,
+					contents.length / format.getFrameSize());
+			AudioSystem.write(stream2, Type.WAVE, file);
+
+			stream2.close();
+			return file.getPath();
+		}
+		return null;
 	}
 
 	public JsonArray getAllFiles() {
@@ -95,8 +121,9 @@ public class MusicServiceImpl {
 				file.setFileType(obj[3].toString());
 				file.setDuration(obj[4].toString());
 				Timestamp timestamp = (Timestamp) obj[5];
-			    long milliseconds = timestamp.getTime() + (timestamp.getNanos() / 1000000);
-			    Date d = new Date(milliseconds);
+				long milliseconds = timestamp.getTime()
+						+ (timestamp.getNanos() / 1000000);
+				Date d = new Date(milliseconds);
 				file.setCreationDate(new Date(milliseconds));
 				file.setMetaData((FileMetaData) obj[6]);
 				files.add(toJsonElement(file));
@@ -107,36 +134,53 @@ public class MusicServiceImpl {
 
 		return files;
 	}
-	
+
 	private static String getDurationString(int seconds) {
 
-	    int hours = seconds / 3600;
-	    int minutes = (seconds % 3600) / 60;
-	    seconds = seconds % 60;
+		int hours = seconds / 3600;
+		int minutes = (seconds % 3600) / 60;
+		seconds = seconds % 60;
 
-	    return twoDigitString(hours) + " : " + twoDigitString(minutes) + " : " + twoDigitString(seconds);
+		return twoDigitString(hours) + " : " + twoDigitString(minutes) + " : "
+				+ twoDigitString(seconds);
 	}
 
 	private static String twoDigitString(int number) {
 
-	    if (number == 0) {
-	        return "00";
-	    }
+		if (number == 0) {
+			return "00";
+		}
 
-	    if (number / 10 == 0) {
-	        return "0" + number;
-	    }
+		if (number / 10 == 0) {
+			return "0" + number;
+		}
 
-	    return String.valueOf(number);
+		return String.valueOf(number);
 	}
 
 	public JsonArray getAllMixedFiles() {
 		JsonArray files = new JsonArray();
-		List<Object> lst = dao.getAllMixedFiles();
-		for (Object o : lst) {
-			MixedFiles obj = (MixedFiles) o;
-			files.add(toJsonElement(obj));
+		try {
+			List<Object> lst = dao.getAllMixedFiles();
+			for (Object o : lst) {
+				Object[] obj = (Object[]) o;
+				MixedFiles file = new MixedFiles();
+				file.setFileId(Integer.valueOf(obj[0].toString()));
+				file.setFileName(obj[1].toString());
+				file.setFileSize(obj[2].toString());
+				file.setDuration(obj[3].toString());
+				Timestamp timestamp = (Timestamp) obj[4];
+				long milliseconds = timestamp.getTime()
+						+ (timestamp.getNanos() / 1000000);
+				Date d = new Date(milliseconds);
+				file.setCreationDate(new Date(milliseconds));
+				file.setMetaData((FileMetaData) obj[5]);
+				files.add(toJsonElement(file));
+			}
+		} catch (Exception e) {
+			throw e;
 		}
+
 		return files;
 	}
 
@@ -202,15 +246,14 @@ public class MusicServiceImpl {
 		for (int i = 0; i < filesShortArray.size(); i++) {
 			short[] arrayMusic1 = filesShortArray.get(i);
 			int size_a = arrayMusic1.length;
-			if(size_a > mixedFileSize)
-			{
+			if (size_a > mixedFileSize) {
 				mixedFileSize = size_a;
 			}
 		}
 		for (int i = 0; i < filesShortArray.size(); i++) {
 			short[] arrayMusic1 = filesShortArray.get(i);
 			int size_a = arrayMusic1.length;
-			System.out.println("S@@@@"+arrayMusic1.length);
+			System.out.println("S@@@@" + arrayMusic1.length);
 			if (size_a < mixedFileSize) {
 				short[] temp = new short[mixedFileSize];
 				// adding series of '0'
@@ -285,26 +328,19 @@ public class MusicServiceImpl {
 				}
 			}
 			fileName = fileName + ".wav";
-			File file = new File(TEMP_FOLDER + fileName);
-			file.getParentFile().mkdirs();
-			AudioSystem.write(stream2, Type.WAVE, file);
-			b_in.close();
-
 			System.out.println("FILEEEEEEEEEEE CREATEDDDDD");
 
-			long audioFileLength = file.length();
 			int frameSize = format.getFrameSize();
 			float frameRate = format.getFrameRate();
-			
-			int durationInSeconds = (int) (audioFileLength / (frameSize * frameRate));
+
+			int durationInSeconds = (int) (end.length / (frameSize * frameRate));
 			String formattedDate = getDurationString(durationInSeconds);
 			System.out.println("DURRRRRRRRR" + formattedDate);
-			// mixedFile.setFileContents(end);
+			mixedFile.setFileContents(end);
 			mixedFile.setMetaData(metaData);
 			String fileSize = humanReadableByteCount((output.length * 2), false);
 			mixedFile.setFileName(fileName);
 			mixedFile.setFileSize(fileSize);
-			mixedFile.setFilePath(file.getPath());
 			mixedFile.setCreationDate(new Date());
 			mixedFile.setDuration(formattedDate);
 			int id = dao.saveMixedFile(mixedFile);
@@ -339,10 +375,12 @@ public class MusicServiceImpl {
 					baseFormat.getSampleRate(), 16, baseFormat.getChannels(),
 					baseFormat.getChannels() * 2, baseFormat.getSampleRate(),
 					false);
-			System.out.println("###SAMPLE RATE"+ decodedFormat.getSampleRate());
-			System.out.println("###SAMPLE SOZE"+ decodedFormat.getSampleSizeInBits());
-			System.out.println("###Channels"+ decodedFormat.getChannels());
-			
+			System.out
+					.println("###SAMPLE RATE" + decodedFormat.getSampleRate());
+			System.out.println("###SAMPLE SOZE"
+					+ decodedFormat.getSampleSizeInBits());
+			System.out.println("###Channels" + decodedFormat.getChannels());
+
 			AudioInputStream din = AudioSystem.getAudioInputStream(
 					decodedFormat, in);
 			out = new ByteArrayOutputStream();
@@ -375,14 +413,14 @@ public class MusicServiceImpl {
 			metaData.setFrameRate(decodedFormat.getSampleRate());
 			metaData.setFrameSize((baseFormat.getChannels() * 2));
 			metaData.setChannel(decodedFormat.getChannels());
-			
+
 			int frameSize = decodedFormat.getFrameSize();
 			float frameRate = decodedFormat.getFrameRate();
-			
-			int durationInSeconds = (int)(ret.length / (frameSize * frameRate));
+
+			int durationInSeconds = (int) (ret.length / (frameSize * frameRate));
 			String formattedDate = getDurationString(durationInSeconds);
 			System.out.println("DURRRRRRRRR" + formattedDate);
-			
+
 			file.setMetaData(metaData);
 			file.setDuration(formattedDate);
 			dao.saveMusicDetails(file);
@@ -403,7 +441,7 @@ public class MusicServiceImpl {
 
 	private JsonObject toJsonElement(Object o) {
 		DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
-		 
+
 		JsonObject json = new JsonObject();
 		if (o instanceof Channel) {
 			Channel channel = (Channel) o;

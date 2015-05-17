@@ -46,7 +46,7 @@ public class MusicDaoImpl {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public Integer saveMixedFile(MixedFiles file) {
 		try {
 			Serializable id = getHibernateTemplate().save(file);
@@ -56,10 +56,12 @@ public class MusicDaoImpl {
 		}
 		return null;
 	}
-	
+
 	public Integer deleteMixedFile(int fileId) {
 		try {
-			getHibernateTemplate().bulkUpdate("delete from "+MixedFiles.class.getName()+" where fileId="+fileId);
+			getHibernateTemplate().bulkUpdate(
+					"delete from " + MixedFiles.class.getName()
+							+ " where fileId=" + fileId);
 		} catch (DataAccessException e) {
 			e.printStackTrace();
 		}
@@ -75,30 +77,32 @@ public class MusicDaoImpl {
 	}
 
 	public List<Object> getAllFiles() {
-		return getHibernateTemplate().find("select f.fileId, f.fileName, f.fileSize, f.fileType, f.duration, f.creationDate, f.metaData from FileInfo f");
-		//return getHibernateTemplate().find("select f.fileName, f.fileSize, f.fileType, f.metaData from FileInfo f");
+		return getHibernateTemplate()
+				.find("select f.fileId, f.fileName, f.fileSize, f.fileType, f.duration, f.creationDate, f.metaData from FileInfo f");
+		// return
+		// getHibernateTemplate().find("select f.fileName, f.fileSize, f.fileType, f.metaData from FileInfo f");
 	}
 
 	public List<Object> getAllMixedFiles() {
-		return getHibernateTemplate().find("from MixedFiles");
-		//return getHibernateTemplate().find("select f.fileName, f.fileSize, f.fileType, f.metaData from FileInfo f");
+		// return getHibernateTemplate().find("from MixedFiles");
+		return getHibernateTemplate()
+				.find("select f.fileId, f.fileName, f.fileSize, f.duration, f.creationDate, f.metaData from MixedFiles f");
 	}
-	
+
 	public FileInfo getFile(int channelId) {
 		return (FileInfo) getHibernateTemplate().find(
 				"from FileInfo where channel.channelId =" + channelId).get(0);
 	}
-	
-	public Object getMixedFilePath(int fileId) {
-		List list  =getHibernateTemplate().find(
-				"select mf.filePath from MixedFiles mf where mf.id =" + fileId);
-		if(CollectionUtils.isNotEmpty(list))
-		{
+
+	public Object getMixedFileWithContents(int fileId) {
+		List list = getHibernateTemplate().find(
+				"select mf.fileName, mf.metaData, mf.fileContents from MixedFiles mf where mf.id =" + fileId);
+		if (CollectionUtils.isNotEmpty(list)) {
 			return list.get(0);
 		}
 		return null;
 	}
-	
+
 	public FileInfo getFileById(int fileId) {
 		return getHibernateTemplate().get(FileInfo.class, fileId);
 	}

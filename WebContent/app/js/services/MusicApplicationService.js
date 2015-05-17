@@ -111,7 +111,7 @@ define(
 
 									downloadFile : function(file) {
 										window.location.href = baseUrl + "services/download?fileId="
-												+ file.fileId;
+												+ file.fileId+ "&fileName="+file.fileName;
 									},
 
 									mixSongs : function(fileIds) {

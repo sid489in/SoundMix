@@ -12,7 +12,7 @@ define(
 				this.musicApplicationService = musicApplicationService;
 				this.scope.showDialog = "false";
 				var self = this;
-				this.title = " Upload Music";
+				this.title = " Upload Music File";
 				this.mixedFiles = [];
 				this.files = [];
 				this.addedFiles = [];
@@ -56,6 +56,7 @@ define(
 				});
 				
 				var self = this;
+				
 				$('#example tbody').on( 'click', 'tr', function () {
 			    	var data = self.musicInfoTable.row( this ).data();
 			    	
@@ -89,7 +90,7 @@ define(
 				
 				$('#example1 tbody').on( 'click', 'button', function () {
 			        var data = self.mixedFileTable.row( $(this).parents('tr') ).data();
-			        self.downloadFile(data[4]);
+			        self.downloadFile(data[5]);
 			    } );
 
 			};
@@ -113,6 +114,7 @@ define(
 
 				navigateToSection : function(sectionId, channel) {
 					this.fileIds = [];
+					this.mixedFile = null;
 					var url = window.location.href.substr(0,
 							window.location.href.lastIndexOf("#"))
 					if (url) {
@@ -279,6 +281,9 @@ define(
 				uploadFile : function() {
 					var self = this;
 					var file = this.scope.musicCtrl.myFile;
+					if(!file){
+						return;
+					}
 					var channel = this.channel;
 					self.closeMusicDialog();
 					$(".modal").fadeIn();
@@ -381,7 +386,7 @@ define(
 				},
 
 				openMusicDialog : function() {
-					this.title = "Upload Music"
+					this.title = "Upload Music File"
 					this.showDialog = true;
 				},
 

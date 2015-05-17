@@ -9,7 +9,7 @@
 <meta name="description" content="">
 <meta name="author" content="">
 
-<title>Music Mix - Mix the World</title>
+<title>Sound Mixer - Mix the World</title>
 
 <!-- Bootstrap Core CSS -->
 <!-- Custom CSS -->
@@ -19,7 +19,7 @@
 <!-- Custom Fonts -->
 <link href="app/font-awesome/css/font-awesome.min.css" rel="stylesheet"
 	type="text/css">
-<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
+<!-- <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700"
 	rel="stylesheet" type="text/css">
 <link href='https://fonts.googleapis.com/css?family=Kaushan+Script'
 	rel='stylesheet' type='text/css'>
@@ -28,7 +28,7 @@
 	rel='stylesheet' type='text/css'>
 <link
 	href='https://fonts.googleapis.com/css?family=Roboto+Slab:400,100,300,700'
-	rel='stylesheet' type='text/css'>
+	rel='stylesheet' type='text/css'> -->
 <script data-main="app/js/MusicApplicationMain.js"
 	src="app/js/libs/require.js"></script>
 <!-- <script src="app/js/libs/jquery-1.11.2.min.js"></script>
@@ -54,7 +54,8 @@
 						class="icon-bar"></span> <span class="icon-bar"></span> <span
 						class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand page-scroll" href="#page-top">Music Mixer!!</a>
+				<a class="navbar-brand page-scroll" href="#page-top">Music
+					Mixer!!</a>
 			</div>
 
 			<!-- Collect the nav links, forms, and other content for toggling -->
@@ -89,7 +90,7 @@
 	</header>
 
 	<!-- Services Section -->
-	<section id="section1">
+	<section id="section1" class="bg-light-gray">
 		<div class="container">
 			<div class="row">
 				<div class="col-lg-12 text-center">
@@ -127,7 +128,11 @@
 						class="fa fa-circle fa-stack-2x text-primary"></i> <i
 						class="fa fa-lock fa-stack-1x fa-inverse"></i>
 					</span>
-					<h4 class="service-heading">View our Collection</h4>
+					<h4 class="service-heading">
+						<a href="#section2" class="page-scroll" style="color: inherit"
+							ng-click="musicCtrl.navigateToSection('collection')">View our
+							Collection</a>
+					</h4>
 					<p class="text-muted">View complete collection of added and
 						mixed audio sounds. Download or share with your friends.</p>
 				</div>
@@ -139,7 +144,7 @@
 							alt="">
 						<h4>{{file.fileName}}</h4>
 						<p class="text-muted">{{file.fileType}}</p>
-						<p class="text-muted">{{file.fileSize}}</p>
+						<p class="text-muted">{{file.duration}}</p>
 						<ul class="list-inline social-buttons">
 							<li><a href="#"><i class="fa fa-twitter"></i></a></li>
 							<li><a href="#"><i class="fa fa-facebook"></i></a></li>
@@ -151,8 +156,7 @@
 		</div>
 	</section>
 	<div>
-		<sd-dialog visible="musicCtrl.showDialog"
-			title="{{musicCtrl.dialogTitle}}">
+		<sd-dialog visible="musicCtrl.showDialog" title="{{musicCtrl.title}}">
 		<form>
 			<div class="form-group">
 				<label for="productImage">Upload</label> <input type="file"
@@ -175,12 +179,15 @@
 				</div>
 			</div>
 			<div class="row">
-					<div style="padding:5px;margin-bottom:10px;"	>
-						<div id="success"></div>
-						<button type="submit" style="line-height:0px;padding:20px;"class="btn btn-xl"
-							ng-show="musicCtrl.fileIds.length > 1"
-							ng-click="musicCtrl.mixFiles()">Mix Audio</button>
-					</div>
+				<div style="padding: 5px; margin-bottom: 10px;">
+					<div id="success"></div>
+					<button type="submit" style="line-height: 0px; padding: 20px;"
+						class="btn btn-xl" ng-show="musicCtrl.fileIds.length > 1"
+						ng-click="musicCtrl.mixFiles()">Mix Audio</button>
+					<button type="submit" style="line-height: 0px; padding: 20px;"
+						class="btn btn-xl" ng-show="musicCtrl.mixedFile !=null"
+						ng-click="musicCtrl.downloadFile(musicCtrl.mixedFile)">Download</button>
+				</div>
 				<table id="example" class="table table-striped table-bordered"
 					cellspacing="0" width="100%">
 					<thead>
@@ -201,15 +208,16 @@
 	</section>
 
 	<!-- About Section -->
-	<section id="collection">
+	<section id="collection" class="bg-light-gray">
 		<div class="container">
-		<div class="row">
+			<div class="row">
 				<div class="col-lg-12 text-center">
 					<h2 class="section-heading">View Music Collection</h2>
-					<h3 class="section-subheading text-muted">View and download Mix & Match music files</h3>
+					<h3 class="section-subheading text-muted">View and download
+						Mix & Match music files</h3>
 				</div>
-			</div>
 			<div class="row">
+			</div>
 				<form>
 					<table id="example1" class="table table-striped table-bordered"
 						cellspacing="0" width="100%">
@@ -217,7 +225,7 @@
 							<tr>
 								<th>File Id</th>
 								<th>File Name</th>
-								<th>Source Files</th>
+								<th>Duration</th>
 								<th>Size</th>
 								<th>Creation Date</th>
 								<th>Action</th>
@@ -232,102 +240,6 @@
 					</table>
 				</form>
 			</div>
-			<!-- <div class="row">
-				<div class="col-lg-12 text-center">
-					<h2 class="section-heading">About</h2>
-					<h3 class="section-subheading text-muted">Lorem ipsum dolor
-						sit amet consectetur.</h3>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-lg-12">
-					<ul class="timeline">
-						<li>
-							<div class="timeline-image">
-								<img class="img-circle img-responsive" src="app/img/about/1.jpg"
-									alt="">
-							</div>
-							<div class="timeline-panel">
-								<div class="timeline-heading">
-									<h4>2009-2011</h4>
-									<h4 class="subheading">Our Humble Beginnings</h4>
-								</div>
-								<div class="timeline-body">
-									<p class="text-muted">Lorem ipsum dolor sit amet,
-										consectetur adipisicing elit. Sunt ut voluptatum eius
-										sapiente, totam reiciendis temporibus qui quibusdam,
-										recusandae sit vero unde, sed, incidunt et ea quo dolore
-										laudantium consectetur!</p>
-								</div>
-							</div>
-						</li>
-						<li class="timeline-inverted">
-							<div class="timeline-image">
-								<img class="img-circle img-responsive" src="app/img/about/2.jpg"
-									alt="">
-							</div>
-							<div class="timeline-panel">
-								<div class="timeline-heading">
-									<h4>March 2011</h4>
-									<h4 class="subheading">An Agency is Born</h4>
-								</div>
-								<div class="timeline-body">
-									<p class="text-muted">Lorem ipsum dolor sit amet,
-										consectetur adipisicing elit. Sunt ut voluptatum eius
-										sapiente, totam reiciendis temporibus qui quibusdam,
-										recusandae sit vero unde, sed, incidunt et ea quo dolore
-										laudantium consectetur!</p>
-								</div>
-							</div>
-						</li>
-						<li>
-							<div class="timeline-image">
-								<img class="img-circle img-responsive" src="app/img/about/3.jpg"
-									alt="">
-							</div>
-							<div class="timeline-panel">
-								<div class="timeline-heading">
-									<h4>December 2012</h4>
-									<h4 class="subheading">Transition to Full Service</h4>
-								</div>
-								<div class="timeline-body">
-									<p class="text-muted">Lorem ipsum dolor sit amet,
-										consectetur adipisicing elit. Sunt ut voluptatum eius
-										sapiente, totam reiciendis temporibus qui quibusdam,
-										recusandae sit vero unde, sed, incidunt et ea quo dolore
-										laudantium consectetur!</p>
-								</div>
-							</div>
-						</li>
-						<li class="timeline-inverted">
-							<div class="timeline-image">
-								<img class="img-circle img-responsive" src="app/img/about/4.jpg"
-									alt="">
-							</div>
-							<div class="timeline-panel">
-								<div class="timeline-heading">
-									<h4>July 2014</h4>
-									<h4 class="subheading">Phase Two Expansion</h4>
-								</div>
-								<div class="timeline-body">
-									<p class="text-muted">Lorem ipsum dolor sit amet,
-										consectetur adipisicing elit. Sunt ut voluptatum eius
-										sapiente, totam reiciendis temporibus qui quibusdam,
-										recusandae sit vero unde, sed, incidunt et ea quo dolore
-										laudantium consectetur!</p>
-								</div>
-							</div>
-						</li>
-						<li class="timeline-inverted">
-							<div class="timeline-image">
-								<h4>
-									Be Part <br>Of Our <br>Story!
-								</h4>
-							</div>
-						</li>
-					</ul>
-				</div>
-			</div> -->
 		</div>
 	</section>
 
@@ -337,17 +249,16 @@
 			<div class="row">
 				<div class="col-lg-12 text-center">
 					<h2 class="section-heading">Our Amazing Team</h2>
-					<h3 class="section-subheading text-muted">Lorem ipsum dolor
-						sit amet consectetur.</h3>
+					<h3 class="section-subheading text-muted"></h3>
 				</div>
 			</div>
 			<div class="row">
 				<div class="col-sm-4">
 					<div class="team-member">
-						<img src="app/img/team/1.jpg" class="img-responsive img-circle"
+						<img src="app/images/web-design.jpg" class="img-responsive img-circle"
 							alt="">
-						<h4>Kay Garland</h4>
-						<p class="text-muted">Lead Designer</p>
+						<h4>Kay Garland (Bootstrap Team)</h4>
+						<p class="text-muted">UI Designer's</p>
 						<ul class="list-inline social-buttons">
 							<li><a href="#"><i class="fa fa-twitter"></i></a></li>
 							<li><a href="#"><i class="fa fa-facebook"></i></a></li>
@@ -357,9 +268,9 @@
 				</div>
 				<div class="col-sm-4">
 					<div class="team-member">
-						<img src="app/img/team/2.jpg" class="img-responsive img-circle"
+						<img src="app/images/user_image.jpg" class="img-responsive img-circle"
 							alt="">
-						<h4>Larry Parker</h4>
+						<h4>To be added</h4>
 						<p class="text-muted">Lead Marketer</p>
 						<ul class="list-inline social-buttons">
 							<li><a href="#"><i class="fa fa-twitter"></i></a></li>
@@ -370,9 +281,9 @@
 				</div>
 				<div class="col-sm-4">
 					<div class="team-member">
-						<img src="app/img/team/3.jpg" class="img-responsive img-circle"
+						<img src="app/images/developer.jpg" class="img-responsive img-circle"
 							alt="">
-						<h4>Diana Pertersen</h4>
+						<h4>Sidharth</h4>
 						<p class="text-muted">Lead Developer</p>
 						<ul class="list-inline social-buttons">
 							<li><a href="#"><i class="fa fa-twitter"></i></a></li>
@@ -384,9 +295,7 @@
 			</div>
 			<div class="row">
 				<div class="col-lg-8 col-lg-offset-2 text-center">
-					<p class="large text-muted">Lorem ipsum dolor sit amet,
-						consectetur adipisicing elit. Aut eaque, laboriosam veritatis,
-						quos non quis ad perspiciatis, totam corporis ea, alias ut unde.</p>
+					<p class="large text-muted"></p>
 				</div>
 			</div>
 		</div>
@@ -395,28 +304,7 @@
 	<!-- Clients Aside -->
 	<aside class="clients">
 		<div class="container">
-			<div class="row">
-				<div class="col-md-3 col-sm-6">
-					<a href="#"> <img src="app/img/logos/envato.jpg"
-						class="img-responsive img-centered" alt="">
-					</a>
-				</div>
-				<div class="col-md-3 col-sm-6">
-					<a href="#"> <img src="app/img/logos/designmodo.jpg"
-						class="img-responsive img-centered" alt="">
-					</a>
-				</div>
-				<div class="col-md-3 col-sm-6">
-					<a href="#"> <img src="app/img/logos/themeforest.jpg"
-						class="img-responsive img-centered" alt="">
-					</a>
-				</div>
-				<div class="col-md-3 col-sm-6">
-					<a href="#"> <img src="app/img/logos/creative-market.jpg"
-						class="img-responsive img-centered" alt="">
-					</a>
-				</div>
-			</div>
+			<div class="row"></div>
 		</div>
 	</aside>
 
@@ -426,8 +314,8 @@
 			<div class="row">
 				<div class="col-lg-12 text-center">
 					<h2 class="section-heading">Contact Us</h2>
-					<h3 class="section-subheading text-muted">Lorem ipsum dolor
-						sit amet consectetur.</h3>
+					<h3 class="section-subheading text-muted">Contact Us for more
+						details</h3>
 				</div>
 			</div>
 			<div class="row">
