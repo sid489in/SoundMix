@@ -3,12 +3,15 @@ package com.service;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.MappedByteBuffer;
 import java.nio.ShortBuffer;
+import java.nio.channels.FileChannel;
 import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -117,6 +120,7 @@ public class MusicServiceImpl {
 				FileInfo file = new FileInfo();
 				file.setFileId(Integer.valueOf(obj[0].toString()));
 				file.setFileName(obj[1].toString());
+				if(obj[2]!=null)
 				file.setFileSize(obj[2].toString());
 				file.setFileType(obj[3].toString());
 				file.setDuration(obj[4].toString());
@@ -167,6 +171,7 @@ public class MusicServiceImpl {
 				MixedFiles file = new MixedFiles();
 				file.setFileId(Integer.valueOf(obj[0].toString()));
 				file.setFileName(obj[1].toString());
+				if(obj[2]!=null)
 				file.setFileSize(obj[2].toString());
 				file.setDuration(obj[3].toString());
 				Timestamp timestamp = (Timestamp) obj[4];
@@ -219,6 +224,23 @@ public class MusicServiceImpl {
 		for (int i = 0; i < fileIds.size(); i++) {
 			int fileId = fileIds.get(i).getAsInt();
 			FileInfo file = dao.getFileById(fileId);
+			File file1 = new File(TEMP_FOLDER + file.getFileName());
+			if(file1.isFile())
+			{
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				FileChannel fChannel = (new FileInputStream(file1)).getChannel();
+			    byte[] barray = new byte[(int) fChannel.size()];
+			    ByteBuffer bb = ByteBuffer.wrap(barray);
+			    bb.order(ByteOrder.LITTLE_ENDIAN);
+			    fChannel.read(bb);
+			    file.setFileContents(barray);
+			    fChannel.close();
+			}
+			else
+			{
+				FileInfo tempFile = dao.getFileContents(fileId);
+				file.setFileContents(tempFile.getFileContents());
+			}
 			sourceFiles.add(file);
 		}
 
@@ -331,7 +353,8 @@ public class MusicServiceImpl {
 			mixedFile.setFileId(id);
 			mixedFile.setFileContents(end);
 			ExecuteSaveThread thread = new ExecuteSaveThread(mixedFile, dao);
-			thread.call();
+			Thread t = new Thread(thread);
+			t.start();
 			return toJsonElement(mixedFile);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -345,14 +368,24 @@ public class MusicServiceImpl {
 		JsonObject fileInfo = new JsonObject();
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			byte[] buffer = new byte[8192];
+			FileChannel fChannel = ((FileInputStream)stream).getChannel();
+		    byte[] barray = new byte[(int) fChannel.size()];
+		    ByteBuffer bb = ByteBuffer.wrap(barray);
+		    bb.order(ByteOrder.LITTLE_ENDIAN);
+		    fChannel.read(bb);
+		    
+			/*final FileChannel channel = ((FileInputStream)stream).getChannel();
+			MappedByteBuffer buffer1	 = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+			// when finished
+			channel.close();*/
+			/*byte[] buffer = new byte[32000];
 			while (true) {
 				int r = stream.read(buffer);
 				if (r == -1)
 					break;
 				out.write(buffer, 0, r);
-			}
-			byte[] ret = out.toByteArray();
+			}*/
+			byte[] ret = barray;
 			stream.close();
 			InputStream bufferedIn = new ByteArrayInputStream(ret);
 			AudioInputStream in = AudioSystem.getAudioInputStream(bufferedIn);
@@ -366,7 +399,8 @@ public class MusicServiceImpl {
 			AudioInputStream din = AudioSystem.getAudioInputStream(
 					decodedFormat, in);
 			out = new ByteArrayOutputStream();
-			buffer = new byte[8192];
+			
+			byte[] buffer = new byte[32000];
 			while (true) {
 				int r = din.read(buffer);
 				if (r == -1)
@@ -374,11 +408,11 @@ public class MusicServiceImpl {
 				out.write(buffer, 0, r);
 			}
 			ret = out.toByteArray();
+			
 			FileInfo file = new FileInfo();
 			String fileName = fileDetail.get("fileName").getAsString();
 			String fileType = fileDetail.get("fileType").getAsString();
 			file.setFileName(fileName);
-			file.setFileContents(ret);
 			file.setFileType(fileType);
 			file.setCreationDate(new Date());
 			FileMetaData metaData = new FileMetaData();
@@ -396,10 +430,17 @@ public class MusicServiceImpl {
 
 			file.setMetaData(metaData);
 			file.setDuration(formattedDate);
+			int fileId = dao.saveMusicDetails(file);
+			file.setFileId(fileId);
+			file.setFileContents(ret);
 			ExecuteSaveThread thread = new ExecuteSaveThread(file, dao);
-			thread.call();
+			Thread t = new Thread(thread);
+			t.start();
 			fileInfo = toJsonElement(file);
-
+			out.close();
+			in.close();
+			stream.close();
+			bufferedIn.close();
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

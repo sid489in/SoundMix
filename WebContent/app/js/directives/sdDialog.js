@@ -20,10 +20,6 @@ define([ 'angular' ], function(angular) {
 					}
 				});
 				
-				elem.on('hidden.bs.modal', function () {
-				    scope.parent.closeMusicDialog();
-				})
-
 			}
 		}
 	});

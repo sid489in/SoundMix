@@ -3,9 +3,11 @@ package com.dao;
 import java.io.Serializable;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.FlushMode;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.entity.Channel;
 import com.entity.FileInfo;
+import com.entity.FileMetaData;
 import com.entity.MixedFiles;
 
 @Component
@@ -39,9 +42,18 @@ public class MusicDaoImpl {
 		this.hibernateTemplate = hibernateTemplate;
 	}
 
-	public void saveMusicDetails(FileInfo file) {
+	public Integer saveMusicDetails(FileInfo file) {
 		try {
-			getHibernateTemplate().saveOrUpdate(file);
+			return (Integer) getHibernateTemplate().save(file);
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	public void updateMusicDetails(FileInfo file) {
+		try {
+			getHibernateTemplate().update(file);
 		} catch (DataAccessException e) {
 			e.printStackTrace();
 		}
@@ -55,6 +67,15 @@ public class MusicDaoImpl {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public void updateMixedFile(MixedFiles file) {
+		try {
+			getHibernateTemplate().update(file);
+			System.out.println("Music file update complete");
+		} catch (DataAccessException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Integer deleteMixedFile(int fileId) {
@@ -104,7 +125,32 @@ public class MusicDaoImpl {
 	}
 
 	public FileInfo getFileById(int fileId) {
-		return getHibernateTemplate().get(FileInfo.class, fileId);
+		Object obj = getHibernateTemplate().find("select f.fileId, f.fileName, f.fileSize, f.fileType, f.duration, f.creationDate, f.metaData from FileInfo f where f.fileId ="+fileId).get(0);
+		FileInfo f = new FileInfo();
+		if(null != obj)
+		{
+			Object o[] = (Object[]) obj;
+			f.setFileId(Integer.valueOf(o[0].toString()));
+			f.setFileName(o[1].toString());
+			f.setFileType(o[3].toString());
+			f.setDuration(o[4].toString());
+			f.setCreationDate((Date) o[5]);
+			f.setMetaData((FileMetaData) o[6]);
+		}
+		return f;
+	}
+	
+	public FileInfo getFileContents(int fileId) {
+		Object obj = getHibernateTemplate().find("select f.fileId, f.fileName, f.fileContents from FileInfo f where f.fileId ="+fileId).get(0);
+		FileInfo f = new FileInfo();
+		if(null != obj)
+		{
+			Object o[] = (Object[]) obj;
+			f.setFileId(Integer.valueOf(o[0].toString()));
+			f.setFileName(o[1].toString());
+			f.setFileContents((byte[]) o[2]);
+		}
+		return f;
 	}
 
 	public List<Channel> getAllChannels() {

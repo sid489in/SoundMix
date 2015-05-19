@@ -37,7 +37,8 @@ require.config({
 		'sdDialog' : [ 'jquery.bootstrap', 'app' ],
 		'fileModel' : [ 'jquery.bootstrap', 'app' ],
 		'sdDataTable' : [ 'jquery.bootstrap', 'app' ]
-	}
+	},
+	waitSeconds: 0
 })
 
 require([ 'jquery','jquery.bootstrap','datatables','dataTablesBootstrap', 'app', 'agency',
